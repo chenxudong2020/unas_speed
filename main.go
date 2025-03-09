@@ -97,10 +97,13 @@ func main() {
 	ticker := time.NewTicker(30 * time.Second)
 	defer ticker.Stop()
 
+	eslog("Starting main function...")
+
 	go func() {
 		for {
 			select {
 			case <-ticker.C:
+				eslog("Ticker triggered, calling getCPUTemp...")
 				cpuTemp, err := getCPUTemp()
 				if err != nil {
 					eslog("Error getting CPU temperature:", err)
@@ -122,6 +125,7 @@ func main() {
 		}
 	}()
 
+	eslog("Waiting for termination signal...")
 	<-sigs
 	tempatureOff()
 }
