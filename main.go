@@ -84,7 +84,7 @@ func setFanSpeed(speed int, bus int) {
 	}
 	defer i2c.Close()
 
-	_, err = i2c.WriteBytes([]byte{0xf0, byte(speed)})
+	err = i2c.Set(0xf0, byte(speed))
 	if err != nil {
 		eslog("Error setting fan speed:", err)
 	}
