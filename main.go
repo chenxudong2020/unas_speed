@@ -7,8 +7,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/periph/host"
-	"github.com/periph/host/i2c"
+	"periph.io/x/conn/v3/i2c"
+	"periph.io/x/conn/v3/i2c/i2creg"
+	"periph.io/x/host/v3"
+	"periph.io/x/host/v3/hostinit"
 )
 
 const (
@@ -79,17 +81,18 @@ func setFanSpeed(speed int) {
 	eslog(fmt.Sprintf("Setting fan speed to %d", speed))
 
 	// 初始化 periph 库
-	if _, err := host.Init(); err != nil {
+	if _, err := hostinit.Init(); err != nil {
 		eslog("Error initializing periph:", err)
 		return
 	}
 
 	// 打开 I2C 总线
-	bus, err := i2c.New("/dev/i2c-0")
+	bus, err := i2creg.Open("/dev/i2c-0")
 	if err != nil {
 		eslog("Error opening I2C bus:", err)
 		return
 	}
+	defer bus.Close()
 
 	// 创建 I2C 设备
 	dev := &i2c.Dev{Addr: I2C_ADDR, Bus: bus}
