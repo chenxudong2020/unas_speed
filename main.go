@@ -96,6 +96,8 @@ func main() {
 					continue
 				}
 
+				eslog(fmt.Sprintf("当前CPU温度: %.2f", cpuTemp))
+
 				currentFanSpeed := getFanSpeedForTemp(cpuTemp)
 
 				if prevCPUTemp != 0 && prevFanSpeed != currentFanSpeed {
