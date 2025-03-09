@@ -10,7 +10,6 @@ import (
 	"periph.io/x/conn/v3/i2c"
 	"periph.io/x/conn/v3/i2c/i2creg"
 	"periph.io/x/host/v3"
-	"periph.io/x/host/v3/hostinit"
 )
 
 const (
@@ -81,7 +80,7 @@ func setFanSpeed(speed int) {
 	eslog(fmt.Sprintf("Setting fan speed to %d", speed))
 
 	// 初始化 periph 库
-	if _, err := hostinit.Init(); err != nil {
+	if _, err := host.Init(); err != nil {
 		eslog("Error initializing periph:", err)
 		return
 	}
