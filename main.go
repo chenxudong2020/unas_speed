@@ -58,6 +58,9 @@ func getCPUTemp() (float64, error) {
 	}
 
 	for _, sensor := range sensors {
+
+		eslog(fmt.Sprintf("Sensor: %s, Temperature: %.2f", sensor.SensorKey, sensor.Temperature))
+
 		if sensor.SensorKey == "coretemp_packageid0" {
 			return sensor.Temperature, nil
 		}
