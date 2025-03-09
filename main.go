@@ -78,16 +78,31 @@ func getCPUTemp() (float64, error) {
 }
 
 func setFanSpeed(speed int) {
-	i2c, err := i2c.NewI2C(I2C_ADDR, I2C_BUS)
-	if err != nil {
-		eslog("Error initializing I2C:", err)
-		return
-	}
-	defer i2c.Close()
+	eslog(fmt.Sprintf("Setting fan speed to %d", speed))
 
-	_, err = i2c.WriteBytes([]byte{0xf0, byte(speed)})
-	if err != nil {
-		eslog("Error setting fan speed:", err)
+	var i2cBuses = []int{0, 1, 2, 3, 4}
+	var success bool
+
+	for _, bus := range i2cBuses {
+		i2c, err := i2c.NewI2C(I2C_ADDR, bus)
+		if err != nil {
+			eslog(fmt.Sprintf("Error initializing I2C on bus %d: %v", bus, err))
+			continue
+		}
+		defer i2c.Close()
+
+		_, err = i2c.WriteBytes([]byte{0xf0, byte(speed)})
+		if err != nil {
+			eslog(fmt.Sprintf("Error setting fan speed on bus %d: %v", bus, err))
+		} else {
+			eslog(fmt.Sprintf("Fan speed set successfully on bus %d", bus))
+			success = true
+			break
+		}
+	}
+
+	if !success {
+		eslog("Failed to set fan speed on all I2C buses")
 	}
 }
 
