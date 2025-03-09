@@ -76,8 +76,8 @@ func getCPUTemp() (float64, error) {
 	return 0, fmt.Errorf("CPU temperature not found")
 }
 
-func setFanSpeed(speed int) {
-	i2c, err := i2c.NewI2C(I2C_ADDR, I2C_BUS)
+func setFanSpeed(speed int, bus int) {
+	i2c, err := i2c.NewI2C(I2C_ADDR, bus)
 	if err != nil {
 		eslog("Error initializing I2C:", err)
 		return
@@ -98,8 +98,11 @@ func main() {
 	defer ticker.Stop()
 
 	eslog("Starting main function...")
-	setFanSpeed(255)
-
+	setFanSpeed(255, 0)
+	setFanSpeed(255, 1)
+	setFanSpeed(255, 2)
+	setFanSpeed(255, 3)
+	setFanSpeed(255, 4)
 	go func() {
 		for {
 			select {
