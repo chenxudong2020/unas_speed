@@ -18,13 +18,13 @@ jobs:
 
     - name: Build
       run: |
-        go build -ldflags="-s -w" -o upnginx main.go
+        go build -ldflags="-s -w" -o unas_speed main.go
 
     - name: Install UPX
       run: sudo apt-get install -y upx
 
     - name: Compress binary
-      run: upx --best --lzma upnginx
+      run: upx --best --lzma unas_speed
 
     - name: Create release
       id: create_release
@@ -43,6 +43,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.DUBUX }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./upnginx
-        asset_name: upnginx
+        asset_path: ./unas_speed
+        asset_name: unas_speed
         asset_content_type: application/octet-stream
