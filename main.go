@@ -7,8 +7,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/d2r2/go-i2c"
-	"github.com/shirou/gopsutil/v3/host"
+	"github.com/periph/host"
+	"github.com/periph/host/i2c"
 )
 
 const (
@@ -17,7 +17,6 @@ const (
 	FAN_SPEED_55_65   = 150
 	FAN_SPEED_55_DOWN = 100
 	I2C_ADDR          = 0x54
-	I2C_BUS           = 1
 )
 
 var (
@@ -47,7 +46,7 @@ func eslog(v ...interface{}) {
 
 func tempatureOff() {
 	eslog("关闭tempature并设置风扇转速100")
-	setFanSpeed(100, 0)
+	setFanSpeed(100)
 	os.Exit(0)
 }
 
@@ -76,22 +75,31 @@ func getCPUTemp() (float64, error) {
 	return 0, fmt.Errorf("CPU temperature not found")
 }
 
-func setFanSpeed(speed int, bus int) {
-	eslog(fmt.Sprintf("Setting fan speed to %d on bus %d", speed, bus))
+func setFanSpeed(speed int) {
+	eslog(fmt.Sprintf("Setting fan speed to %d", speed))
 
-	i2c, err := i2c.NewI2C(I2C_ADDR, bus)
-	if err != nil {
-		eslog(fmt.Sprintf("Error initializing I2C on bus %d: %v", bus, err))
+	// 初始化 periph 库
+	if _, err := host.Init(); err != nil {
+		eslog("Error initializing periph:", err)
 		return
 	}
-	defer i2c.Close()
 
-	// 使用 Set 方法来设置风扇速度
-	err = i2c.Set(0xf0, byte(speed))
+	// 打开 I2C 总线
+	bus, err := i2c.New("/dev/i2c-0")
 	if err != nil {
-		eslog(fmt.Sprintf("Error setting fan speed on bus %d: %v", bus, err))
+		eslog("Error opening I2C bus:", err)
+		return
+	}
+
+	// 创建 I2C 设备
+	dev := &i2c.Dev{Addr: I2C_ADDR, Bus: bus}
+
+	// 设置风扇速度
+	err = dev.Tx([]byte{0xf0, byte(speed)}, nil)
+	if err != nil {
+		eslog("Error setting fan speed:", err)
 	} else {
-		eslog(fmt.Sprintf("Fan speed set successfully on bus %d", bus))
+		eslog("Fan speed set successfully")
 	}
 }
 
@@ -103,11 +111,9 @@ func main() {
 	defer ticker.Stop()
 
 	eslog("Starting main function...")
-	setFanSpeed(255, 0)
-	setFanSpeed(255, 1)
-	setFanSpeed(255, 2)
-	setFanSpeed(255, 3)
-	setFanSpeed(255, 4)
+
+	setFanSpeed(255)
+
 	go func() {
 		for {
 			select {
@@ -124,7 +130,7 @@ func main() {
 
 				if prevCPUTemp != 0 && prevFanSpeed != currentFanSpeed {
 					eslog(fmt.Sprintf("CPU温度从 %.2f 变为 %.2f，挡位从 %d 变为 %d", prevCPUTemp, cpuTemp, prevFanSpeed, currentFanSpeed))
-					setFanSpeed(currentFanSpeed, 0)
+					setFanSpeed(currentFanSpeed)
 				}
 				prevCPUTemp = cpuTemp
 				prevFanSpeed = currentFanSpeed
