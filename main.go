@@ -47,7 +47,7 @@ func eslog(v ...interface{}) {
 
 func tempatureOff() {
 	eslog("关闭tempature并设置风扇转速100")
-	setFanSpeed(100)
+	setFanSpeed(100, 0)
 	os.Exit(0)
 }
 
@@ -119,7 +119,7 @@ func main() {
 
 				if prevCPUTemp != 0 && prevFanSpeed != currentFanSpeed {
 					eslog(fmt.Sprintf("CPU温度从 %.2f 变为 %.2f，挡位从 %d 变为 %d", prevCPUTemp, cpuTemp, prevFanSpeed, currentFanSpeed))
-					setFanSpeed(currentFanSpeed)
+					setFanSpeed(currentFanSpeed, 0)
 				}
 				prevCPUTemp = cpuTemp
 				prevFanSpeed = currentFanSpeed
