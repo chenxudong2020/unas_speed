@@ -1,0 +1,48 @@
+name: Build and Release
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: '1.24.0'
+
+    - name: Build
+      run: |
+        go build -ldflags="-s -w" -o upnginx main.go
+
+    - name: Install UPX
+      run: sudo apt-get install -y upx
+
+    - name: Compress binary
+      run: upx --best --lzma upnginx
+
+    - name: Create release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.DUBUX }}
+      with:
+        tag_name: ${{ github.ref_name }}
+        release_name: Release ${{ github.ref_name }}
+        draft: false
+        prerelease: false
+
+    - name: Upload release asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.DUBUX }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./upnginx
+        asset_name: upnginx
+        asset_content_type: application/octet-stream

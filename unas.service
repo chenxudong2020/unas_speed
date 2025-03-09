@@ -1,0 +1,11 @@
+[Unit]
+Description=upnginx Service
+After=network.target nginx.service
+
+[Service]
+Type=simple
+User=root
+ExecStart=/usr/local/bin/upnginx -location /etc/nginx
+
+[Install]
+WantedBy=multi-user.target
