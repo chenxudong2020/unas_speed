@@ -7,6 +7,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/shirou/gopsutil/v3/host"
 	"periph.io/x/conn/v3/i2c"
 	"periph.io/x/conn/v3/i2c/i2creg"
 	"periph.io/x/host/v3"
@@ -69,7 +70,7 @@ func getCPUTemp() (float64, error) {
 
 	for _, sensor := range sensors {
 		eslog(fmt.Sprintf("Sensor: %s, Temperature: %.2f", sensor.SensorKey, sensor.Temperature))
-		if sensor.Temperature > 0 {
+		if sensor.SensorKey == "coretemp_package_id_0" {
 			return sensor.Temperature, nil
 		}
 	}
