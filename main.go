@@ -17,7 +17,7 @@ const (
 	FAN_SPEED_55_65   = 150
 	FAN_SPEED_55_DOWN = 100
 	I2C_ADDR          = 0x54
-	I2C_BUS           = 0
+	I2C_BUS           = 1
 )
 
 var (
@@ -69,7 +69,6 @@ func getCPUTemp() (float64, error) {
 
 	for _, sensor := range sensors {
 		eslog(fmt.Sprintf("Sensor: %s, Temperature: %.2f", sensor.SensorKey, sensor.Temperature))
-		// Return the first sensor with a reasonable temperature value
 		if sensor.Temperature > 0 {
 			return sensor.Temperature, nil
 		}
@@ -78,31 +77,16 @@ func getCPUTemp() (float64, error) {
 }
 
 func setFanSpeed(speed int) {
-	eslog(fmt.Sprintf("Setting fan speed to %d", speed))
-
-	var i2cBuses = []int{0, 1, 2, 3, 4}
-	var success bool
-
-	for _, bus := range i2cBuses {
-		i2c, err := i2c.NewI2C(I2C_ADDR, bus)
-		if err != nil {
-			eslog(fmt.Sprintf("Error initializing I2C on bus %d: %v", bus, err))
-			continue
-		}
-		defer i2c.Close()
-
-		_, err = i2c.WriteBytes([]byte{0xf0, byte(speed)})
-		if err != nil {
-			eslog(fmt.Sprintf("Error setting fan speed on bus %d: %v", bus, err))
-		} else {
-			eslog(fmt.Sprintf("Fan speed set successfully on bus %d", bus))
-			success = true
-			break
-		}
+	i2c, err := i2c.NewI2C(I2C_ADDR, I2C_BUS)
+	if err != nil {
+		eslog("Error initializing I2C:", err)
+		return
 	}
+	defer i2c.Close()
 
-	if !success {
-		eslog("Failed to set fan speed on all I2C buses")
+	_, err = i2c.WriteBytes([]byte{0xf0, byte(speed)})
+	if err != nil {
+		eslog("Error setting fan speed:", err)
 	}
 }
 
@@ -114,12 +98,12 @@ func main() {
 	defer ticker.Stop()
 
 	eslog("Starting main function...")
+	setFanSpeed(255)
 
 	go func() {
 		for {
 			select {
 			case <-ticker.C:
-				eslog("Ticker triggered, calling getCPUTemp...")
 				cpuTemp, err := getCPUTemp()
 				if err != nil {
 					eslog("Error getting CPU temperature:", err)
@@ -134,7 +118,6 @@ func main() {
 					eslog(fmt.Sprintf("CPU温度从 %.2f 变为 %.2f，挡位从 %d 变为 %d", prevCPUTemp, cpuTemp, prevFanSpeed, currentFanSpeed))
 					setFanSpeed(currentFanSpeed)
 				}
-
 				prevCPUTemp = cpuTemp
 				prevFanSpeed = currentFanSpeed
 			}
