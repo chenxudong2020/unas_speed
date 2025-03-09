@@ -52,10 +52,15 @@ func tempatureOff() {
 }
 
 func getCPUTemp() (float64, error) {
+	eslog("Attempting to get CPU temperature...")
+
 	sensors, err := host.SensorsTemperatures()
 	if err != nil {
+		eslog("Error retrieving sensor temperatures:", err)
 		return 0, err
 	}
+
+	eslog(fmt.Sprintf("Number of sensors found: %d", len(sensors)))
 
 	if len(sensors) == 0 {
 		eslog("No sensors found")
